@@ -362,7 +362,7 @@ namespace DepotDownloader
             steam3.Disconnect();
         }
 
-        public static void DownloadApp(uint appId, uint depotId, string branch, bool forceDepot = false)
+        public static ExitCode DownloadApp(uint appId, uint depotId, string branch, bool forceDepot = false)
         {
             if(steam3 != null)
                 steam3.RequestAppInfo(appId);
@@ -371,7 +371,7 @@ namespace DepotDownloader
             {
                 string contentName = GetAppOrDepotName(INVALID_DEPOT_ID, appId);
                 Console.WriteLine("App {0} ({1}) is not available from this account.", appId, contentName);
-                return;
+                return ExitCode.AppUnavailable;
             }
 
             var depotIDs = new List<uint>();
@@ -415,7 +415,7 @@ namespace DepotDownloader
                 if (depotIDs == null || (depotIDs.Count == 0 && depotId == INVALID_DEPOT_ID))
                 {
                     Console.WriteLine("Couldn't find any depots to download for app {0}", appId);
-                    return;
+                    return ExitCode.NoDepotsFound;
                 }
                 else if (depotIDs.Count == 0)
                 {
@@ -425,7 +425,7 @@ namespace DepotDownloader
                         Console.Write(" or not available on this platform");
                     }
                     Console.WriteLine();
-                    return;
+                    return ExitCode.NoDepotsFound;
                 }
             }
 
@@ -447,7 +447,10 @@ namespace DepotDownloader
             catch (OperationCanceledException)
             {
                 Console.WriteLine("App {0} was not completely downloaded.", appId);
+                return ExitCode.DownloadIncomplete;
             }
+
+            return ExitCode.None;
         }
 
         static DepotDownloadInfo GetDepotInfo(uint depotId, uint appId, string branch)

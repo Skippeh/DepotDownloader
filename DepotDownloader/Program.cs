@@ -9,12 +9,12 @@ namespace DepotDownloader
 {
     class Program
     {
-        static void Main( string[] args )
+        static int Main( string[] args )
         {
             if ( args.Length == 0 )
             {
                 PrintUsage();
-                return;
+                return (int)ExitCode.ParametersInvalid;
             }
 
             DebugLog.Enabled = false;
@@ -29,13 +29,13 @@ namespace DepotDownloader
             if ( appId == ContentDownloader.INVALID_APP_ID )
             {
                 Console.WriteLine( "Error: -app not specified!" );
-                return;
+                return (int)ExitCode.ParametersInvalid;
             }
 
             if (depotId == ContentDownloader.INVALID_DEPOT_ID && ContentDownloader.Config.ManifestId != ContentDownloader.INVALID_MANIFEST_ID)
             {
                 Console.WriteLine("Error: -manifest requires -depot to be specified");
-                return;
+                return (int)ExitCode.ParametersInvalid;
             }
 
             ContentDownloader.Config.DownloadManifestOnly = bDumpManifest;
@@ -110,8 +110,14 @@ namespace DepotDownloader
 
             if (ContentDownloader.InitializeSteam3(username, password))
             {
-                ContentDownloader.DownloadApp(appId, depotId, branch, forceDepot);
+                ExitCode exitCode = ContentDownloader.DownloadApp(appId, depotId, branch, forceDepot);
                 ContentDownloader.ShutdownSteam3();
+
+                return (int)exitCode;
+            }
+            else
+            {
+                return (int)ExitCode.LoginError;
             }
         }
 
